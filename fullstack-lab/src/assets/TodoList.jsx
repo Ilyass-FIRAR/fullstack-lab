@@ -8,32 +8,38 @@ export default function TodoList() {
 
   const [inputValue, setInputValue] = useState("");
 
-  const handleAddTask = () =>{
-    if(inputValue.trim() === "") return;
+  const handleAddTask = (e) => {
+    e.preventDefault();
+    if (inputValue.trim() === "") return;
 
     const newTask = {
-        id : Date.now(),
-        title : inputValue ,
-        completed : false
+      id: Date.now(),
+      title: inputValue,
+      completed: false,
     };
 
-        setTask([...tasks])
-    
-  }
+    setTasks([...tasks, newTask]);
+    setInputValue("");
+  };
   return (
+    
     <div>
-      <h1>Todo-List</h1>
-      <input
-        type="text"
-        placeholder="Add your Task : "
-        onChange={(e) => {
-          setTask = e.target.value;
-        }}
-      />
-      <button type="submit">Add</button>
-
+    <h1>Todo-List</h1>  
+      <form onSubmit={handleAddTask}>
+        <input
+          type="text"
+          placeholder="Add your Task "
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+          }}
+        />
+        <button type="submit">Add</button>
+      </form>
       <ul>
-        <li>{task}</li>
+        {tasks.map((task) => (
+          <li key={task.id}>{task.title}</li>
+        ))}
       </ul>
     </div>
   );
