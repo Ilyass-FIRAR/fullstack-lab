@@ -8,7 +8,18 @@ export default function TodoList() {
 
   const [inputValue, setInputValue] = useState("");
 
-  const handleAddTask = () =>{}
+  const handleAddTask = () =>{
+    if(inputValue.trim() === "") return;
+
+    const newTask = {
+        id : Date.now(),
+        title : inputValue ,
+        completed : false
+    };
+
+        setTask([...tasks])
+    
+  }
   return (
     <div>
       <h1>Todo-List</h1>
