@@ -7,6 +7,8 @@ export default function TodoList() {
   ]);
 
   const [inputValue, setInputValue] = useState("");
+  const [editingTaskId, setEditingTaskId] = useState(null);
+  const [editingValue, setEditingValue] = useState("");
 
   const handleAddTask = (e) => {
     e.preventDefault();
@@ -21,6 +23,28 @@ export default function TodoList() {
     setTasks([...tasks, newTask]);
     setInputValue("");
   };
+
+  const handleStartEdit = (task) => {
+    setEditingTaskId(task.id);
+    setEditingValue(task.title);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTaskId(null);
+    setEditingValue("");
+  };
+
+  const handleUpdateTask = (id) => {
+    if (editingValue.trim() === "") return;
+
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, title: editingValue.trim() } : task
+      )
+    );
+    handleCancelEdit();
+  };
+
   return (
     
     <div>
@@ -38,7 +62,30 @@ export default function TodoList() {
       </form>
       <ul>
         {tasks.map((task) => (
-          <li key={task.id}>{task.title}</li>
+          <li key={task.id}>
+            {editingTaskId === task.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editingValue}
+                  onChange={(e) => setEditingValue(e.target.value)}
+                />
+                <button type="button" onClick={() => handleUpdateTask(task.id)}>
+                  Save
+                </button>
+                <button type="button" onClick={handleCancelEdit}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                {task.title}{" "}
+                <button type="button" onClick={() => handleStartEdit(task)}>
+                  Update
+                </button>
+              </>
+            )}
+          </li>
         ))}
       </ul>
     </div>
