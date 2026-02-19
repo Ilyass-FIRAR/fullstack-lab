@@ -45,6 +45,22 @@ export default function TodoList() {
     handleCancelEdit();
   };
 
+  const handleDeleteTask = (id) => {
+    setTasks(tasks.filter((task) => task.id !== id));
+
+    if (editingTaskId === id) {
+      handleCancelEdit();
+    }
+  };
+
+  const handleToggleCompleted = (id) => {
+    setTasks(
+      tasks.map((task) =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
+  };
+
   return (
     
     <div>
@@ -79,9 +95,25 @@ export default function TodoList() {
               </>
             ) : (
               <>
-                {task.title}{" "}
+                <span
+                  style={{
+                    textDecoration: task.completed ? "line-through" : "none",
+                    marginRight: "8px",
+                  }}
+                >
+                  {task.title}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleToggleCompleted(task.id)}
+                >
+                  {task.completed ? "Undo" : "Complete"}
+                </button>
                 <button type="button" onClick={() => handleStartEdit(task)}>
                   Update
+                </button>
+                <button type="button" onClick={() => handleDeleteTask(task.id)}>
+                  Delete
                 </button>
               </>
             )}
