@@ -1,4 +1,4 @@
-import TodoList from "./assets/TodoList"
+import TodoList from "./TodoList"
 
 function App() {
   return (
