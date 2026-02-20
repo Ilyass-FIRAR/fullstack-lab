@@ -1,6 +1,6 @@
 import supabase from '../supabase-tasks';
 
-// Add a new task (without user_id for now)
+// Add a new task
 export const addTask = async (title, period) => {
   const { data, error } = await supabase
     .from('tasks')
@@ -10,7 +10,7 @@ export const addTask = async (title, period) => {
   if (error) throw error;
   return data[0];
 };
-console.log("ADD FUNCTION TRIGGERED");
+
 // Fetch all tasks
 export const fetchTasks = async () => {
   const { data, error } = await supabase
@@ -22,4 +22,24 @@ export const fetchTasks = async () => {
   return data;
 };
 
-// ...rest of functions...
+// Update a task
+export const updateTask = async (taskId, updates) => {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update(updates)
+    .eq('id', taskId)
+    .select();
+  
+  if (error) throw error;
+  return data[0];
+};
+
+// Delete a task
+export const deleteTask = async (taskId) => {
+  const { error } = await supabase
+    .from('tasks')
+    .delete()
+    .eq('id', taskId);
+  
+  if (error) throw error;
+};

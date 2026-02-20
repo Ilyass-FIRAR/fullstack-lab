@@ -1,40 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { addTask, fetchTasks, updateTask, deleteTask } from "./services/taskService";
 
 export default function TodoList() {
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Read a book (Atomic Habits)",
-      completed: true,
-      period: "daily",
-    },
-    { id: 2, title: "Plan next sprint", completed: false, period: "weekly" },
-    {
-      id: 3,
-      title: "Review monthly objectives",
-      completed: false,
-      period: "monthly",
-    },
-  ]);
-//Back
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [selectedPeriod, setSelectedPeriod] = useState("daily");
   const [editingTaskId, setEditingTaskId] = useState(null);
   const [editingValue, setEditingValue] = useState("");
 
-  const handleAddTask = (e) => {
+  // Load tasks from Supabase on mount
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  const loadTasks = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchTasks();
+      setTasks(data || []);
+      console.log("✅ Tasks loaded from Supabase:", data);
+    } catch (error) {
+      console.error("❌ Error loading tasks:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddTask = async (e) => {
     e.preventDefault();
     if (inputValue.trim() === "") return;
 
-    const newTask = {
-      id: Date.now(),
-      title: inputValue,
-      completed: false,
-      period: selectedPeriod,
-    };
-
-    setTasks([...tasks, newTask]);
-    setInputValue("");
+    try {
+      const newTask = await addTask(inputValue, selectedPeriod);
+      setTasks([...tasks, newTask]);
+      setInputValue("");
+      console.log("✅ Task added to Supabase:", newTask);
+    } catch (error) {
+      console.error("❌ Error adding task:", error.message);
+    }
   };
 
   const handleStartEdit = (task) => {
@@ -47,31 +51,50 @@ export default function TodoList() {
     setEditingValue("");
   };
 
-  const handleUpdateTask = (id) => {
+  const handleUpdateTask = async (id) => {
     if (editingValue.trim() === "") return;
 
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, title: editingValue.trim() } : task
-      )
-    );
-    handleCancelEdit();
-  };
-
-  const handleDeleteTask = (id) => {
-    setTasks(tasks.filter((task) => task.id !== id));
-
-    if (editingTaskId === id) {
+    try {
+      await updateTask(id, { title: editingValue.trim() });
+      setTasks(
+        tasks.map((task) =>
+          task.id === id ? { ...task, title: editingValue.trim() } : task
+        )
+      );
       handleCancelEdit();
+      console.log("✅ Task updated in Supabase");
+    } catch (error) {
+      console.error("❌ Error updating task:", error.message);
     }
   };
 
-  const handleToggleCompleted = (id) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
+  const handleDeleteTask = async (id) => {
+    try {
+      await deleteTask(id);
+      setTasks(tasks.filter((task) => task.id !== id));
+
+      if (editingTaskId === id) {
+        handleCancelEdit();
+      }
+      console.log("✅ Task deleted from Supabase");
+    } catch (error) {
+      console.error("❌ Error deleting task:", error.message);
+    }
+  };
+
+  const handleToggleCompleted = async (id) => {
+    try {
+      const task = tasks.find((t) => t.id === id);
+      await updateTask(id, { completed: !task.completed });
+      setTasks(
+        tasks.map((task) =>
+          task.id === id ? { ...task, completed: !task.completed } : task
+        )
+      );
+      console.log("✅ Task toggled in Supabase");
+    } catch (error) {
+      console.error("❌ Error toggling task:", error.message);
+    }
   };
 
   const completedCount = tasks.filter((task) => task.completed).length;
@@ -173,7 +196,14 @@ export default function TodoList() {
       <div className="pointer-events-none absolute -top-20 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-indigo-500/25 blur-3xl" />
 
       <section className="relative mx-auto w-full max-w-2xl rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
-        <div className="mb-6 flex items-end justify-between gap-3">
+        
+        {loading ? (
+          <div className="py-12 text-center">
+            <p className="text-slate-300">Loading tasks from Supabase...</p>
+          </div>
+        ) : (
+          <>
+            <div className="mb-6 flex items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-indigo-300">
               Productivity
@@ -237,6 +267,8 @@ export default function TodoList() {
             );
           })}
         </div>
+          </>
+        )}
       </section>
     </main>
   );
